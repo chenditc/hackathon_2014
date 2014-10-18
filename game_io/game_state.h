@@ -11,9 +11,6 @@ struct board_point {
 };
 
 class game_state {
-        int myScore;
-        int hisScore;       
-        bool scoreUpdated; 
     public:
         game_state(Json::Value);
         void set_game_state(Json::Value);
@@ -34,6 +31,8 @@ class game_state {
 
         board_point nextMove;
 
-        int calcualteScore();
+        int calcualteScore() const;
         int getScore() const; 
+        bool isNearEmpty(int x, int y, int z) const;
+
 };

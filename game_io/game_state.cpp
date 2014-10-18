@@ -1,4 +1,5 @@
 #include "game_state.h"
+#include <cmath>
 
 game_state::game_state(Json::Value state) {
     this->set_game_state(state);
@@ -77,34 +78,49 @@ void game_state::set_game_state(Json::Value message) {
     if (!state["opponent_tokens"].isNull())
         this->their_tokens = state["opponent_tokens"].asInt();
     //this->opponent_id = state["opponent_id"].asInt();
-    //
 
     // Mycode
     if (legal_moves.size() > 0)
         nextMove = legal_moves.at(0);
-    scoreUpdated = false;
 }
 
 int game_state::getScore() const {
-    return myScore;
+    return calcualteScore();
 }
 
-int game_state::calcualteScore() {
-    if (scoreUpdated)
-        return myScore;
+bool game_state::isNearEmpty(int x, int y, int z) const {
+    if (x + y + z + 1 < board.size() && board[x+1][y][z] != 0)
+        return false;
+    if (x + y + z + 1 < board.size() && board[x][y+1][z] != 0)
+        return false;
+    if (x - 1 > -1 && board[x-1][y][z] != 0)
+        return false;
+    if (y - 1 > -1 && board[x][y-1][z] != 0)
+        return false;
+
+    return true;
+} 
+
+int game_state::calcualteScore() const {
     // TODO: put prediction function here
-    myScore = 0;
-    hisScore = 0;
+    double myScore = 0;
+    int hisScore = 0;
 
     int size = board.size();
 
     // central point
-    int best = size/2;
+    double best = size/3;
     for(int x = 0; x < board.size(); x++) {
         for(int y = 0; y < board[x].size(); y++) {
             // more central, better point
-            if (board[x][y][0] == player_number) 
-                myScore += x + y - best;
+            if (board[x][y][0] == player_number) {
+                myScore += x + y - best -best - abs(x-y);   
+                if (isNearEmpty(x, y, 0))
+                    myScore -= size;
+            }
+            else {
+                myScore -= size;
+            }
             if (board[x][y][0] != player_number && board[x][y][0] != 0)
                 hisScore += x + y - best;
         }

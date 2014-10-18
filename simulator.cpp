@@ -4,14 +4,14 @@
 
 struct StateComp {
     bool operator() (const game_state &lhs, const game_state &rhs) {
-        return lhs.getScore() < rhs.getScore();
+        return lhs.getScore() > rhs.getScore();
     }
 } stateComp;
 
 board_point Simulator::getBestMove() {
     // stateContainer.push_back(gameState);
-//    simulateAllMyMove(gameState);
-/*
+    simulateAllMyMove(gameState);
+
     // calculate the score in all condition
     for(StateContainer::iterator it = stateContainer.begin();
             it != stateContainer.end(); it++) {
@@ -20,19 +20,18 @@ board_point Simulator::getBestMove() {
     // sort the container using comparator
     sort(stateContainer.begin(), stateContainer.end(), stateComp);  
     // return the move that can lead to best situation. 
-*/
+
     assert(stateContainer.size() > 0);
-//    cout << "best is " << stateContainer.at(0).getScore()
-//        << "worst is " << stateContainer.back().getScore() << endl;
-    return gameState.nextMove; 
+    assert(stateContainer.at(0).getScore() > stateContainer.back().getScore());
+    return stateContainer.at(0).nextMove; 
 }
 
 void Simulator::simulateAllMyMove(const game_state &oldGameState) {
     // calcualte the legal move for my side and call simuate on that player
     for (int i = 0; i < oldGameState.legal_moves.size(); i++) { 
-//        game_state newGameState = placeMove(oldGameState, i, me.myPlayerNum) ;
+        game_state newGameState = placeMove(oldGameState, i, me.myPlayerNum) ;
         // put all generated game_state into container
-//        stateContainer.push_back(newGameState);
+        stateContainer.push_back(newGameState);
     }
 }
 

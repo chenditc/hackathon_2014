@@ -16,10 +16,10 @@ void client::error(error_msg* err) {
 }
 
 move_response* client::move(move_request* req) {
-//    Simulator simulator(*(req->state));
-//    return new take_space_response(simulator.getBestMove());
+    Simulator simulator(*(req->state));
+    return new take_space_response(simulator.getBestMove());
 
-    cout << "get here" <<endl;
+    cout << "start random" <<endl;
 // TODO: erase this after everything settled.
     
     if (random_wait(random_generator))

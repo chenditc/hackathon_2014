@@ -1,8 +1,6 @@
 #include <random>
 #include <string>
 
-#include "my_player.h"
-#include "simulator.h"
 #include "game_io/game_io.h"
 #include "game_io/json_response.h"
 #include "game_io/move_request.h"
