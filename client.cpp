@@ -7,6 +7,7 @@
 #endif
 
 #include "client.h"
+#include "game_io/game_state.h"
 #include "simulator.h"
 #include "json_socket/json_socket.h"
 
@@ -16,17 +17,14 @@ void client::error(error_msg* err) {
 }
 
 move_response* client::move(move_request* req) {
+    cout << "time left: " << req->state->time_remaining_ns/1000000 << endl;
     Simulator simulator(*(req->state));
-    return new take_space_response(simulator.getBestMove());
-
-    cout << "start random" <<endl;
-// TODO: erase this after everything settled.
-    
-    if (random_wait(random_generator))
+    board_point result = simulator.getBestMove();
+    if (result.x == 256) {
         return new wait_response();
+    }
     else {
-        uniform_int_distribution<int> random_space(0, req->state->legal_moves.size() - 1);
-        return new take_space_response(req->state->legal_moves[random_space(random_generator)]);
+        return new take_space_response(result);
     }
 }
 

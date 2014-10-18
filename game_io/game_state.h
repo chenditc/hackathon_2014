@@ -30,9 +30,16 @@ class game_state {
         int moves_remaining;
 
         board_point nextMove;
+        int score;
 
-        int calcualteScore() const;
+        int calcualteScore();
         int getScore() const; 
         bool isNearEmpty(int x, int y, int z) const;
+        void updateLegalTable(vector< vector< vector<int> > > &legalTable,
+                              int x, int y, int z);
+
+        void updateLegalMoves();
+        int findBestLevel();
+        void swapUser();
 
 };

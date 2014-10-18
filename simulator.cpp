@@ -17,6 +17,7 @@ board_point Simulator::getBestMove() {
             it != stateContainer.end(); it++) {
         it->calcualteScore();
     }
+
     // sort the container using comparator
     sort(stateContainer.begin(), stateContainer.end(), stateComp);  
     // return the move that can lead to best situation. 
@@ -33,6 +34,9 @@ void Simulator::simulateAllMyMove(const game_state &oldGameState) {
         // put all generated game_state into container
         stateContainer.push_back(newGameState);
     }
+
+    // assume wait
+    stateContainer.push_back(wait(oldGameState, me.myPlayerNum)); 
 }
 
 
@@ -41,6 +45,19 @@ void Simulator::simulateAllHisMove() {
     // TODO: put all generated game_state into container
 
 
+}
+
+void updateBoard(vector< vector< vector<int> > > &board,
+                 int x, int y, int z, int side) {
+    
+    if(board[x][y][z] != side && board[x][y][z] != 0)
+        assert("trying to update something not legal");
+    if (z > 0) {
+        updateBoard(board, x+1, y, z-1, side);
+        updateBoard(board, x, y+1, z-1, side);
+        updateBoard(board, x, y , z-1, side);
+    }
+    board[x][y][z] = side;
 }
 
 // create a new game state and put a new move on specific point 
@@ -52,11 +69,23 @@ game_state Simulator::placeMove(const game_state &gameState,
 
     // place move
     result.board[next.x][next.y][next.z] = side; 
+    // update all points under it.
+    updateBoard(result.board, next.x, next.y, next.z, side);
+
+    // take out tokens
+    result.your_tokens -= next.z; 
     result.nextMove = next;
 
     // update legal move
-    result.legal_moves.pop_back();
+    result.updateLegalMoves();
     return result;
 } 
 
-
+game_state Simulator::wait(const game_state &gameState,
+                           const int side) {
+    game_state result = gameState;
+    result.your_tokens++;
+    result.updateLegalMoves();
+    result.nextMove = {256, 256, 256};
+    return result;    
+}

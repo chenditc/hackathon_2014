@@ -39,6 +39,8 @@ class Simulator {
         game_state placeMove(const game_state &gameState, 
                              const int nextPoint,
                              const int side);
+        game_state wait(const game_state &gameState,
+                        const int side);
 
 };
 

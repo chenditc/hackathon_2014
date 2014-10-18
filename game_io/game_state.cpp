@@ -85,7 +85,7 @@ void game_state::set_game_state(Json::Value message) {
 }
 
 int game_state::getScore() const {
-    return calcualteScore();
+    return score;
 }
 
 bool game_state::isNearEmpty(int x, int y, int z) const {
@@ -101,29 +101,111 @@ bool game_state::isNearEmpty(int x, int y, int z) const {
     return true;
 } 
 
-int game_state::calcualteScore() const {
+int game_state::findBestLevel() {
+    int tempBest = 1;
+    cout << "legal move size: " << legal_moves.size() << endl;
+    for(int i = 0; i <legal_moves.size(); i++) {
+        if(legal_moves.at(i).z < your_tokens && legal_moves.at(i).z + 1> tempBest)
+            tempBest = legal_moves.at(i).z + 1;
+    }
+    return tempBest;
+}
+
+void game_state::swapUser() {
+    player_number = player_number == 1? 2 : 1;
+    swap(your_tokens, their_tokens);
+}
+
+int game_state::calcualteScore() {
     // TODO: put prediction function here
     double myScore = 0;
-    int hisScore = 0;
+    double hisScore = 0;
 
     int size = board.size();
 
-    // central point
+    // get basic score
     double best = size/3;
     for(int x = 0; x < board.size(); x++) {
         for(int y = 0; y < board[x].size(); y++) {
-            // more central, better point
-            if (board[x][y][0] == player_number) {
-                myScore += x + y - best -best - abs(x-y);   
-                if (!isNearEmpty(x, y, 0))
-                    myScore -= size;
+            for(int z = 0; z < board[x][y].size(); z++) {
+                if(board[x][y][z] == player_number)
+                    myScore++;
+                else if (board[x][y][z] != 0)
+                    hisScore++;
             }
-            else {
-                myScore -= size;
-            }
-            if (board[x][y][0] != player_number && board[x][y][0] != 0)
-                hisScore += x + y - best;
         }
     }    
-    return myScore; 
+
+    // get potential score
+    double myBestShot = findBestLevel();
+    their_tokens++;
+    swapUser();
+    updateLegalMoves();
+    double hisBestShot = findBestLevel();
+
+    cout << "basic: " << myScore << " " << hisScore;
+
+    myScore += myBestShot * (myBestShot + 1) * (myBestShot + 2) / 10;
+    hisScore += hisBestShot * (hisBestShot + 1) * (hisBestShot + 2) / 8;
+
+    cout << "\t token: " << their_tokens << " " << your_tokens;
+    cout << "\t bestLevel: " << myBestShot << " " << hisBestShot;
+    cout << "\t final: " << myScore << " " << hisScore <<endl;
+
+     
+    score = myScore - hisScore;
+    return myScore - hisScore; 
 }
+
+const int LEGAL = -1;
+const int ILLEGAL = -2;
+
+// so called legal, but it means the point that could belong to me.
+void game_state::updateLegalTable(vector< vector< vector<int> > > &legalTable,
+                     int x, int y, int z) {
+    if(legalTable[x][y][z] < 0)
+        return;
+
+    // bottom layer short cut/
+    if(z == 0 && 
+       (legalTable[x][y][z] == 0 || legalTable[x][y][z] == player_number)) {
+        legalTable[x][y][z] = LEGAL;
+        return;
+    }
+    else if (z == 0) {
+        legalTable[x][y][z] = ILLEGAL;
+        return;
+    }
+
+    if(legalTable[x][y][z-1] >= 0) 
+        updateLegalTable(legalTable, x, y, z-1);
+    if(legalTable[x+1][y][z-1] >= 0) 
+        updateLegalTable(legalTable, x+1, y, z-1);
+    if(legalTable[x][y+1][z-1] >= 0) 
+        updateLegalTable(legalTable, x, y+1, z-1);
+    
+    if(legalTable[x][y][z-1] == LEGAL &&
+       legalTable[x+1][y][z-1] == LEGAL &&
+       legalTable[x][y+1][z-1] == LEGAL &&
+       (legalTable[x][y][z] == 0 || legalTable[x][y][z] == player_number))
+        legalTable[x][y][z] = LEGAL;
+    else
+        legalTable[x][y][z] = ILLEGAL;
+}
+
+void game_state::updateLegalMoves() {
+    legal_moves.clear();
+    vector< vector< vector<int> > > legalTable = board;
+    for(unsigned int x = 0; x < board.size(); x++) {
+        for(unsigned int y = 0; y < board[x].size(); y++) {
+            for(unsigned int z = 0; z <board[x][y].size(); z++) {
+                updateLegalTable(legalTable, x, y, z); 
+                if(legalTable[x][y][z] == LEGAL 
+                        && board[x][y][z] == 0
+                        && z < your_tokens)
+                    legal_moves.push_back({x, y, z});
+            }
+        }
+    }
+}
+
