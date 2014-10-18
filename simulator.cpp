@@ -22,7 +22,7 @@ board_point Simulator::getBestMove() {
     // return the move that can lead to best situation. 
 
     assert(stateContainer.size() > 0);
-    assert(stateContainer.at(0).getScore() > stateContainer.back().getScore());
+    assert(stateContainer.at(0).getScore() >= stateContainer.back().getScore());
     return stateContainer.at(0).nextMove; 
 }
 

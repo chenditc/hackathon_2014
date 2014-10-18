@@ -115,7 +115,7 @@ int game_state::calcualteScore() const {
             // more central, better point
             if (board[x][y][0] == player_number) {
                 myScore += x + y - best -best - abs(x-y);   
-                if (isNearEmpty(x, y, 0))
+                if (!isNearEmpty(x, y, 0))
                     myScore -= size;
             }
             else {
