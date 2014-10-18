@@ -16,7 +16,11 @@ void client::error(error_msg* err) {
     throw GameError();
 }
 
+vector<game_state> lastGameState;
+
 move_response* client::move(move_request* req) {
+    lastGameState.clear();
+    lastGameState.push_back(*(req->state));
     cout << "time left: " << req->state->time_remaining_ns/1000000 << endl;
     Simulator simulator(*(req->state));
     board_point result = simulator.getBestMove();
@@ -34,6 +38,8 @@ void client::server_greeting(greeting* greet) {
 
 void client::game_over(game_result* r) {
     // left blank for you
+    lastGameState.back().logFinalScore();
+    
 }
 
 void client::hand_done(move_result* r) {

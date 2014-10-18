@@ -24,6 +24,8 @@ board_point Simulator::getBestMove() {
 
     assert(stateContainer.size() > 0);
     assert(stateContainer.at(0).getScore() >= stateContainer.back().getScore());
+
+    stateContainer.at(0).logInfo();
     return stateContainer.at(0).nextMove; 
 }
 
@@ -73,11 +75,11 @@ game_state Simulator::placeMove(const game_state &gameState,
     updateBoard(result.board, next.x, next.y, next.z, side);
 
     // take out tokens
-    result.your_tokens -= next.z; 
+    result.your_tokens -= next.z + 1; 
     result.nextMove = next;
 
     // update legal move
-    result.updateLegalMoves();
+    result.updateLegalMovesAndEmptyCount();
     return result;
 } 
 
@@ -85,7 +87,7 @@ game_state Simulator::wait(const game_state &gameState,
                            const int side) {
     game_state result = gameState;
     result.your_tokens++;
-    result.updateLegalMoves();
+    result.updateLegalMovesAndEmptyCount();
     result.nextMove = {256, 256, 256};
     return result;    
 }

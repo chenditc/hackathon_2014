@@ -32,14 +32,27 @@ class game_state {
         board_point nextMove;
         int score;
 
+        // calcualte evaluation score
         int calcualteScore();
+
+        // get evaluation score
         int getScore() const; 
-        bool isNearEmpty(int x, int y, int z) const;
+
+        // a table store the legal value
         void updateLegalTable(vector< vector< vector<int> > > &legalTable,
                               int x, int y, int z);
 
-        void updateLegalMoves();
+        // update legal move array
+        void updateLegalMovesAndEmptyCount();
+
+        int countEmpty(const int x, const int y, const int z);
+        // find the best point in this move that can get maximum extra point, return the extra point
         int findBestLevel();
+
+        // swap player number between me and oopponent, so we can simulate his best shot
         void swapUser();
+
+        void logInfo();
+        void logFinalScore();
 
 };

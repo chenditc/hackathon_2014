@@ -1,4 +1,6 @@
 #include "game_state.h"
+#include <fstream>
+#include <sstream>
 #include <cmath>
 
 game_state::game_state(Json::Value state) {
@@ -88,6 +90,7 @@ int game_state::getScore() const {
     return score;
 }
 
+/*
 bool game_state::isNearEmpty(int x, int y, int z) const {
     if (x + y + z + 1 < board.size() && board[x+1][y][z] != 0)
         return false;
@@ -100,13 +103,36 @@ bool game_state::isNearEmpty(int x, int y, int z) const {
 
     return true;
 } 
+*/
 
+int game_state::countEmpty(const int x, const int y, const int z) {
+    int cnt = 0;
+
+    for(int h = 0; h <= z; h++) {
+        for(int i = x; i - x <= z-h; i++) {
+            for(int j = y; i - x + j - y <=  z-h; j++) {
+                if(board[i][j][h] == 0)
+                   cnt++; 
+            }
+        }
+    } 
+    return cnt;
+}
+// find the best point that can earn most extra points
 int game_state::findBestLevel() {
+    board_point bestPoint;
     int tempBest = 1;
-    cout << "legal move size: " << legal_moves.size() << endl;
     for(int i = 0; i <legal_moves.size(); i++) {
-        if(legal_moves.at(i).z < your_tokens && legal_moves.at(i).z + 1> tempBest)
-            tempBest = legal_moves.at(i).z + 1;
+        if(legal_moves.at(i).z < your_tokens) {
+            int x = legal_moves.at(i).x;
+            int y = legal_moves.at(i).y;
+            int z = legal_moves.at(i).z;
+            int tempCnt =  countEmpty(x,y,z); 
+            if (tempCnt > tempBest) {
+                bestPoint = legal_moves.at(i);
+                tempBest = tempCnt; 
+            }
+        }
     }
     return tempBest;
 }
@@ -124,7 +150,6 @@ int game_state::calcualteScore() {
     int size = board.size();
 
     // get basic score
-    double best = size/3;
     for(int x = 0; x < board.size(); x++) {
         for(int y = 0; y < board[x].size(); y++) {
             for(int z = 0; z < board[x][y].size(); z++) {
@@ -140,15 +165,20 @@ int game_state::calcualteScore() {
     double myBestShot = findBestLevel();
     their_tokens++;
     swapUser();
-    updateLegalMoves();
+    updateLegalMovesAndEmptyCount();
     double hisBestShot = findBestLevel();
+    swapUser();
 
+    if(nextMove.x == 256)
+        cout << "WAIT move:" << endl;
     cout << "basic: " << myScore << " " << hisScore;
 
-    myScore += myBestShot * (myBestShot + 1) * (myBestShot + 2) / 10;
-    hisScore += hisBestShot * (hisBestShot + 1) * (hisBestShot + 2) / 8;
+    myScore += myBestShot * 0.7;
 
-    cout << "\t token: " << their_tokens << " " << your_tokens;
+    // penalize his possible score by 
+    hisScore += hisBestShot * 0.9;
+
+    cout << "\t token: " << your_tokens << " " << their_tokens;
     cout << "\t bestLevel: " << myBestShot << " " << hisBestShot;
     cout << "\t final: " << myScore << " " << hisScore <<endl;
 
@@ -166,7 +196,7 @@ void game_state::updateLegalTable(vector< vector< vector<int> > > &legalTable,
     if(legalTable[x][y][z] < 0)
         return;
 
-    // bottom layer short cut/
+    // bottom layer short cut, base case/
     if(z == 0 && 
        (legalTable[x][y][z] == 0 || legalTable[x][y][z] == player_number)) {
         legalTable[x][y][z] = LEGAL;
@@ -177,13 +207,15 @@ void game_state::updateLegalTable(vector< vector< vector<int> > > &legalTable,
         return;
     }
 
+    // update all three lower level
     if(legalTable[x][y][z-1] >= 0) 
         updateLegalTable(legalTable, x, y, z-1);
     if(legalTable[x+1][y][z-1] >= 0) 
         updateLegalTable(legalTable, x+1, y, z-1);
     if(legalTable[x][y+1][z-1] >= 0) 
         updateLegalTable(legalTable, x, y+1, z-1);
-    
+   
+    // update this level, base case 
     if(legalTable[x][y][z-1] == LEGAL &&
        legalTable[x+1][y][z-1] == LEGAL &&
        legalTable[x][y+1][z-1] == LEGAL &&
@@ -191,9 +223,13 @@ void game_state::updateLegalTable(vector< vector< vector<int> > > &legalTable,
         legalTable[x][y][z] = LEGAL;
     else
         legalTable[x][y][z] = ILLEGAL;
+
+    // update empty count
 }
 
-void game_state::updateLegalMoves() {
+
+
+void game_state::updateLegalMovesAndEmptyCount() {
     legal_moves.clear();
     vector< vector< vector<int> > > legalTable = board;
     for(unsigned int x = 0; x < board.size(); x++) {
@@ -202,10 +238,48 @@ void game_state::updateLegalMoves() {
                 updateLegalTable(legalTable, x, y, z); 
                 if(legalTable[x][y][z] == LEGAL 
                         && board[x][y][z] == 0
-                        && z < your_tokens)
+                        && z < your_tokens) 
                     legal_moves.push_back({x, y, z});
             }
         }
     }
 }
 
+void game_state::logInfo() {
+    cout << "log into file" << endl;
+    stringstream fileNameSStr;
+    fileNameSStr << "log." << game_id << "." << moves_remaining;
+    ofstream log;
+    log.open(fileNameSStr.str().c_str());
+    log << game_id << " ";
+    log << opponent_id << " " 
+        << your_points << " " 
+        << their_points << " "
+        << your_tokens << " " 
+        << their_tokens << " ";
+    for(int x = 0; x <board.size(); x++) {
+        for(int y = 0; y < board[x].size(); y++) {
+            for(int z = 0; z < board[x][y].size(); z++){
+                if (board[x][y][z] == 0) {
+                    log << 0 << " ";
+                    continue;
+                }
+                log << (board[x][y][z] == player_number ? 1 : 2);
+                log << " ";
+            }
+        }
+    }
+    log <<endl;
+    log.close();
+
+}
+
+void game_state::logFinalScore() {
+    stringstream fileNameSStr;
+    fileNameSStr << "score." << game_id ;
+    ofstream log;
+    log.open(fileNameSStr.str().c_str());
+    log << your_points - their_points;
+    log << endl;
+    log.close();
+}
