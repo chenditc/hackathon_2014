@@ -15,12 +15,18 @@ void client::error(error_msg* err) {
 }
 
 move_response* client::move(move_request* req) {
+
+
+
+// TODO: erase this after everything settled.
+    /*
     if (random_wait(random_generator))
         return new wait_response();
     else {
         uniform_int_distribution<int> random_space(0, req->state->legal_moves.size() - 1);
         return new take_space_response(req->state->legal_moves[random_space(random_generator)]);
     }
+    */
 }
 
 void client::server_greeting(greeting* greet) {
@@ -33,6 +39,8 @@ void client::game_over(game_result* r) {
 
 void client::hand_done(move_result* r) {
     // left blank for you
+    // TODO: update game state
+
 }
 
 void client::move_received(move_result* r) {

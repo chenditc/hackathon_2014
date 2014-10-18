@@ -28,4 +28,6 @@ class game_state {
         int their_tokens;
         unsigned long long time_remaining_ns;
         int moves_remaining;
+
+        
 };
