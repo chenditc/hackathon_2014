@@ -5,15 +5,15 @@
 // AI class
 
 class MyPlayer {
-    int myPlayerNum;
-
     public:
-    MyPlayer(int playerNum) {
-        myPlayerNum = playerNum;
-    }
+        int myPlayerNum;
 
-    // place the next legal move available for this player
-    void placeNextLegalMoveOnState(game_state &game_state);
+        MyPlayer(int playerNum) {
+            myPlayerNum = playerNum;
+        }
+
+        // place the next legal move available for this player
+        void placeNextLegalMoveOnState(game_state &game_state);
 
 };
 

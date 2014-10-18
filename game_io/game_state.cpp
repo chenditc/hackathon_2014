@@ -77,4 +77,37 @@ void game_state::set_game_state(Json::Value message) {
     if (!state["opponent_tokens"].isNull())
         this->their_tokens = state["opponent_tokens"].asInt();
     //this->opponent_id = state["opponent_id"].asInt();
+    //
+
+    // Mycode
+    if (legal_moves.size() > 0)
+        nextMove = legal_moves.at(0);
+    scoreUpdated = false;
+}
+
+int game_state::getScore() const {
+    return myScore;
+}
+
+int game_state::calcualteScore() {
+    if (scoreUpdated)
+        return myScore;
+    // TODO: put prediction function here
+    myScore = 0;
+    hisScore = 0;
+
+    int size = board.size();
+
+    // central point
+    int best = size/2;
+    for(int x = 0; x < board.size(); x++) {
+        for(int y = 0; y < board[x].size(); y++) {
+            // more central, better point
+            if (board[x][y][0] == player_number) 
+                myScore += x + y - best;
+            if (board[x][y][0] != player_number && board[x][y][0] != 0)
+                hisScore += x + y - best;
+        }
+    }    
+    return myScore; 
 }

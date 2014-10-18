@@ -24,7 +24,7 @@ DIR=$(shell readlink -f .)
 LD_FLAGS_EXTRA=-Wl,-rpath,$(DIR)/json_socket,-rpath,$(DIR)/game_io
 endif
 
-client: client.h client.cpp jsoncpp json_socket game_io
+client: client.h client.cpp my_player.cpp simulator.cpp jsoncpp json_socket game_io 
 	g++ -g -std=c++0x $(LD_FLAGS_EXTRA) -o $@ $(INCLUDE_PATH) $(LIBRARY_PATH) client.cpp $(USELIBS) my_player.cpp simulator.cpp
 
 json_socket:

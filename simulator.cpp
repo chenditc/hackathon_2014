@@ -1,15 +1,39 @@
 #include "simulator.h"
+#include <algorithm>
+#include <assert.h>
 
+struct StateComp {
+    bool operator() (const game_state &lhs, const game_state &rhs) {
+        return lhs.getScore() < rhs.getScore();
+    }
+} stateComp;
 
 board_point Simulator::getBestMove() {
-    // TODO: sort the container using comparator
-
+    // stateContainer.push_back(gameState);
+//    simulateAllMyMove(gameState);
+/*
+    // calculate the score in all condition
+    for(StateContainer::iterator it = stateContainer.begin();
+            it != stateContainer.end(); it++) {
+        it->calcualteScore();
+    }
+    // sort the container using comparator
+    sort(stateContainer.begin(), stateContainer.end(), stateComp);  
+    // return the move that can lead to best situation. 
+*/
+    assert(stateContainer.size() > 0);
+//    cout << "best is " << stateContainer.at(0).getScore()
+//        << "worst is " << stateContainer.back().getScore() << endl;
+    return gameState.nextMove; 
 }
 
-void Simulator::simulateAllMyMove() {
-    // TODO: calcualte the legal move for my side and call simulate on that player
-    // TODO: put all generated game_state into container
-
+void Simulator::simulateAllMyMove(const game_state &oldGameState) {
+    // calcualte the legal move for my side and call simuate on that player
+    for (int i = 0; i < oldGameState.legal_moves.size(); i++) { 
+//        game_state newGameState = placeMove(oldGameState, i, me.myPlayerNum) ;
+        // put all generated game_state into container
+//        stateContainer.push_back(newGameState);
+    }
 }
 
 
@@ -19,20 +43,21 @@ void Simulator::simulateAllHisMove() {
 
 
 }
-        // get all legal move for specific side
-vector<board_point> Simulator::getAllLegalMoves(const game_state &gameState, const int side) {
-    // TODO: 1. get moves only on first floor
-}
 
 // create a new game state and put a new move on specific point 
-static game_state Simulator::placeMove(const game_state &gameState,
-                                       const int x,
-                                       const int y,
-                                       const int z,
-                                       const int side) {
-    
+game_state Simulator::placeMove(const game_state &gameState, 
+                                const int nextPoint,
+                                const int side) {
+    game_state result = gameState;
+    board_point next = gameState.legal_moves.at(nextPoint);
 
+    // place move
+    result.board[next.x][next.y][next.z] = side; 
+    result.nextMove = next;
 
+    // update legal move
+    result.legal_moves.pop_back();
+    return result;
 } 
 
 

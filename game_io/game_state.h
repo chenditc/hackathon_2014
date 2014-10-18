@@ -11,6 +11,9 @@ struct board_point {
 };
 
 class game_state {
+        int myScore;
+        int hisScore;       
+        bool scoreUpdated; 
     public:
         game_state(Json::Value);
         void set_game_state(Json::Value);
@@ -29,5 +32,8 @@ class game_state {
         unsigned long long time_remaining_ns;
         int moves_remaining;
 
-        
+        board_point nextMove;
+
+        int calcualteScore();
+        int getScore() const; 
 };
